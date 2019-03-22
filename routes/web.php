@@ -24,7 +24,7 @@ Route::group(['middleware' => ['auth']], function (){
         return view('welcome');
     });
     Route::resource('game', 'GameController');
-    Route::get('/home', 'GameController@profile')->name('home');
+    Route::get('/', 'GameController@profile')->name('home');
     Route::post('/home', 'GameController@userOptions');
     //Route::post('/game/post', 'GameController@storeAjax');
 
@@ -34,4 +34,4 @@ Route::view('/grocery', 'grocery');
 Route::post('/grocery/post', 'GroceryController@store');
 
 Route::view('/storeAjax', 'storeAjax');
-Route::post('/storeAjax/post', 'GameController@storeAjax');
+Route::post('/storeAjax/post', 'GameController@store');
