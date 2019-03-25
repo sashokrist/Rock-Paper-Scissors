@@ -44,6 +44,7 @@
     .def{
         background: yellow;
         font-weight: bold;
+        color: black;
     }
     .dan{
         background: red;
@@ -76,8 +77,13 @@
 </style>
 @section('content')
     <div class="container">
+        @if (Session::has('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+        @endif
         <div class="row">
-            <div class="col-sm-6">
+            <div class="col-sm-12">
                 <div class="row">
                     <div class="col-sm-12">
                         <img src="{{ asset('images/Rock.png') }}" alt="">
@@ -85,7 +91,7 @@
                         <img src="{{ asset('images/Scissor.png') }}" alt="">
                     </div>
                 </div>
-                <div class="alert res"><h3>You: </h3></div>
+                <div class="alert res"><h3> </h3></div>
                 <div class="col-sm-8">
                     <form id="myForm">
                         <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -93,7 +99,7 @@
                             <div class="input-group-prepend">
                                 <label class="input-group-text" for="inputGroupSelect01">Pick item</label>
                             </div>
-                            <select class="custom-select" name="item" id="item">
+                            <select class="custom-select" id="item">
                                 <option selected>Choose...</option>
                                 <option value="rock">Rock</option>
                                 <option value="paper">Paper</option>
@@ -104,6 +110,24 @@
                     </form>
                 </div>
             </div>
+            {{--<div class="col-sm-6">
+                <h3>Your Statistic</h3>
+                <table>
+                    <tr>
+                        <th>id</th>
+                        <th>Win</th>
+                        <th>Victories</th>
+                    </tr>
+                    @foreach($rounds as $round)
+                        <tr>
+                            <td>{{ $round->user_id }}</td>
+                            <td>{{ $round->win }}</td>
+                            <td>{{ $round->victories }}</td>
+                        </tr>
+                    @endforeach
+                </table>
+            </div>
+        </div>--}}
             <div class="col-sm-6">
                 <h3>Your Statistic</h3>
                 <table>
@@ -128,10 +152,6 @@
             </div>
             </div>
         </div>
-    <script src="http://code.jquery.com/jquery-3.3.1.min.js"
-            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-            crossorigin="anonymous">
-    </script>
     <script>
         jQuery(document).ready(function(){
             jQuery('#ajaxSubmit').click(function(e){
@@ -143,29 +163,24 @@
                     }
                 });
                 $.ajax({
-                    url: "{{ url('/storeAjax/post') }}",
+                    url: "{{ url('/game') }}",
                     method: 'post',
                     data: {
                         name: $('#item').val()
                     },
                     success: function(result){
                         console.log(result.result);
-                        //var res = JSON.stringify(result);
-                        //var obj = $.parseJSON('{"item": "Win"}' );
                         if( result.result === 'Win'){
                             $('.alert').show();
                             $('.alert').html(result.result).addClass('dan');
-                            setTimeout(location.reload.bind(location), 3000);
                         }
                         else if( result.result === 'Lost'){
                             $('.alert').show();
                             $('.alert').html(result.result).addClass('suc');
-                            setTimeout(location.reload.bind(location), 3000);
                         }
                         else {
                             $('.alert').show();
                             $('.alert').html(result.result).addClass('def');
-                            setTimeout(location.reload.bind(location), 1000);
                         }
 
                     }}

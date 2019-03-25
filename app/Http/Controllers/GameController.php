@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Player;
 use App\Round;
 use Input;
+use Session;
 
 class GameController extends Controller
 {
@@ -30,10 +31,15 @@ class GameController extends Controller
 
     public function profile()
     {
-
         $user_id = auth()->user()->id;
-        $players = Player::where('user_id', $user_id)->oredeyBy('id', 'desc')->paginate(10);
+        $players = Player::where('user_id', $user_id)->orderBy('id', 'desc')->paginate(10);
         return view('welcome')->with('players', $players);
+    }
+
+   public function rounds(){
+        $user_id = auth()->user()->id;
+        $rounds = Round::where('user_id', $user_id)->orderBy('id', 'desc')->paginate(10);
+        return view('rounds')->with('rounds', $rounds);
     }
 
     /**
@@ -54,13 +60,8 @@ class GameController extends Controller
      */
     public function store(Request $request)
     {
-        //return $request;
-        $items = $request->get('item');
-        //$items->name = $request->item;
 
-        if ($request->isXmlHttpRequest()) {
-            $items = $request->get('name');
-        }
+        $items = $request->get('name');
 
         $options = array("rock", "paper", "scissors");
         $computer = $options[rand(0, 2)];
@@ -70,19 +71,17 @@ class GameController extends Controller
         $game->name = auth()->user()->name;
         $game->computer = $computer;
         $game->item = $items;
-        //$game->save();
-
-        //$game_id = $game->id;
-
 
         if ($items == 'scissors' && $computer == 'paper' ||
             $items == 'paper' && $computer == 'rock' ||
             $items == 'rock' && $computer == 'scissors') :
             $game->win = 'Win';
-
+            Session::flash('success', 'You WIN.');
             $round = new Round();
             $round->user_id = auth()->user()->id;
             $round->win = 'Win';
+            $round->victories = 1;
+
             $round->save();
         endif;
 
@@ -90,106 +89,38 @@ class GameController extends Controller
             $computer == 'paper' && $items == 'rock' ||
             $computer == 'rock' && $items == 'scissors') :
             $game->win = 'Lost';
-
+            Session::flash('success', 'You LOST.');
             $round = new Round();
             $round->user_id = auth()->user()->id;
             $round->win = 'Lost';
+            $round->victories = 0;
+
             $round->save();
         endif;
 
         if ($items == $computer) :
             $game->win = 'Tie';
+            Session::flash('success', 'TIE');
             $round = new Round();
             $round->user_id = auth()->user()->id;
             $round->win = 'Tie';
+            $round->victories = 0;
+
             $round->save();
         endif;
         $game->save();
         if ($request->isXmlHttpRequest()) {
-            $rItem = $round->win;
                 return response()->json([
-                    'result' => $rItem
+                    'result' => $round->win
                 ]);
             }
-        return view('welcome')->with('items', $items)->with('computer', $computer)->with('result', $round->win);
+        return view('welcome');
     }
 
-    /*public function storeAjax(Request $request)
-    {
-
-        //return $request;
-        //$items = $request->get('item');
-        $items = $request->item;
-        //dd($items);
-        $options = array("rock", "paper", "scissors");
-        $computer = $options[rand(0, 2)];
-
-        $game = new Player();
-        $game->user_id = auth()->user()->id;
-        $game->name = auth()->user()->name;
-        $game->computer = $computer;
-        //$game->item = $items;
-        $game->item = $items;
-
-        if ($items == 'scissors' && $computer == 'paper' ||
-            $items == 'paper' && $computer == 'rock' ||
-            $items == 'rock' && $computer == 'scissors') :
-            $game->win = 'Win';
-
-            $round = new Round();
-            $round->user_id = auth()->user()->id;
-            $round->win = 'Win';
-            $round->save();
-            $game->save();
-            return response()->json(['success' => 'You Win'], 200);
-        endif;
-
-        if ($computer == 'scissors' && $items == 'paper' ||
-            $computer == 'paper' && $items == 'rock' ||
-            $computer == 'rock' && $items == 'scissors') :
-            $game->win = 'Lost';
-
-            $round = new Round();
-            $round->user_id = auth()->user()->id;
-            $round->win = 'Lost';
-            $round->save();
-            $game->save();
-            return response()->json(['success' => 'You lost']);
-        endif;
-
-        if ($items == $computer) :
-            $game->win = 'Tie';
-            $round = new Round();
-            $round->user_id = auth()->user()->id;
-            $round->win = 'Tie';
-            $round->save();
-            $game->save();
-            return response()->json(['success' => 'Tie']);
-        endif;
-        //return response()->json(['success'=>'Data is successfully added']);
-        //$game->save();
-        //return $request;
-        //return view('test')->with('items', $items)->with( 'computer', $computer);
-        return response()->json(['success' => 'Tie']);
-    }*/
-
-    public function userOptions(Request $request)
-    {
-        $userItem = $request->get('item');
-        //dd($items);
-        return view('home')->with('userItem', $userItem);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int $id
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
-        $game = Player::find($id);
-        return view('play')->with('player', $game);
+       /* $game = Player::find($id);
+        return view('play')->with('player', $game);*/
     }
 
     /**

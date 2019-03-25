@@ -24,14 +24,10 @@ Route::group(['middleware' => ['auth']], function (){
         return view('welcome');
     });
     Route::resource('game', 'GameController');
-    Route::get('/', 'GameController@profile')->name('home');
-    Route::post('/home', 'GameController@userOptions');
-    //Route::post('/game/post', 'GameController@storeAjax');
+    Route::get('/', 'GameController@profile')->name('welcome');
+    Route::get('/rounds', 'GameController@rounds')->name('rounds');
+    Route::post('/', 'GameController@userOptions');
+   // Route::post('/storeAjax/post', 'GameController@store');
 
 });
 
-Route::view('/grocery', 'grocery');
-Route::post('/grocery/post', 'GroceryController@store');
-
-Route::view('/storeAjax', 'storeAjax');
-Route::post('/storeAjax/post', 'GameController@store');
