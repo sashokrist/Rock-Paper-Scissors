@@ -43,7 +43,7 @@
 <table>
     <tr>
         <th>id</th>
-        <th>Win</th>
+        <th>Game</th>
         <th>Victories</th>
     </tr>
     {{ $rounds->count() }}

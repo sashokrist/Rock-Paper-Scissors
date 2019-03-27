@@ -8,6 +8,8 @@ use App\Player;
 use App\Round;
 use Input;
 use Session;
+use DB;
+use Auth;
 
 class GameController extends Controller
 {
@@ -27,6 +29,10 @@ class GameController extends Controller
 
         //$players = Player::all();
         return view('index')->with('players', $players);
+    }
+
+    public function gameover(){
+        return view('gameover');
     }
 
     public function profile()
@@ -60,8 +66,9 @@ class GameController extends Controller
      */
     public function store(Request $request)
     {
-
-        $items = $request->get('name');
+        if ($request->isXmlHttpRequest()) {
+            $items = $request->get('name');
+        }
 
         $options = array("rock", "paper", "scissors");
         $computer = $options[rand(0, 2)];
@@ -70,51 +77,60 @@ class GameController extends Controller
         $game->user_id = auth()->user()->id;
         $game->name = auth()->user()->name;
         $game->computer = $computer;
-        $game->item = $items;
+        $game->item = $request->get('name');
+        /*
+         * if there is 3 rows in a table
+         * check if there is more than 1 victories
+         * set game as Win else set game as Lost
+         */
+        $count = Round::all();
+        if($count->count() == 3){
+            $game->save();
+            Session::flash('success', 'Game Over');
+            return view('welcome');
+        }else{
+            if ($items == 'scissors' && $computer == 'paper' ||
+                $items == 'paper' && $computer == 'rock' ||
+                $items == 'rock' && $computer == 'scissors') :
+                $game->win = 'Win';
+                Session::flash('success', 'You WIN.');
+                $round = new Round();
+                $round->user_id = auth()->user()->id;
+                $round->win = 'Win';
+                $round->victories = 1;
+                $round->save();
+            endif;
 
-        if ($items == 'scissors' && $computer == 'paper' ||
-            $items == 'paper' && $computer == 'rock' ||
-            $items == 'rock' && $computer == 'scissors') :
-            $game->win = 'Win';
-            Session::flash('success', 'You WIN.');
-            $round = new Round();
-            $round->user_id = auth()->user()->id;
-            $round->win = 'Win';
-            $round->victories = 1;
+            if ($computer == 'scissors' && $items == 'paper' ||
+                $computer == 'paper' && $items == 'rock' ||
+                $computer == 'rock' && $items == 'scissors') :
+                $game->win = 'Lost';
+                Session::flash('success', 'You LOST.');
+                $round = new Round();
+                $round->user_id = auth()->user()->id;
+                $round->win = 'Lost';
+                $round->victories = 0;
+                $round->save();
+            endif;
 
-            $round->save();
-        endif;
+            if ($items == $computer) :
+                $game->win = 'Tie';
+                Session::flash('success', 'TIE');
+                $round = new Round();
+                $round->user_id = auth()->user()->id;
+                $round->win = 'Tie';
+                $round->victories = 0;
+                $round->save();
+            endif;
+        }
 
-        if ($computer == 'scissors' && $items == 'paper' ||
-            $computer == 'paper' && $items == 'rock' ||
-            $computer == 'rock' && $items == 'scissors') :
-            $game->win = 'Lost';
-            Session::flash('success', 'You LOST.');
-            $round = new Round();
-            $round->user_id = auth()->user()->id;
-            $round->win = 'Lost';
-            $round->victories = 0;
-
-            $round->save();
-        endif;
-
-        if ($items == $computer) :
-            $game->win = 'Tie';
-            Session::flash('success', 'TIE');
-            $round = new Round();
-            $round->user_id = auth()->user()->id;
-            $round->win = 'Tie';
-            $round->victories = 0;
-
-            $round->save();
-        endif;
-        $game->save();
+       $game->save();
         if ($request->isXmlHttpRequest()) {
                 return response()->json([
                     'result' => $round->win
                 ]);
             }
-        return view('welcome');
+        //return view('welcome');
     }
 
     public function show($id)

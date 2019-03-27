@@ -27,6 +27,8 @@ Route::group(['middleware' => ['auth']], function (){
     Route::get('/', 'GameController@profile')->name('welcome');
     Route::get('/rounds', 'GameController@rounds')->name('rounds');
     Route::post('/', 'GameController@userOptions');
+    Route::get('/gameover', 'GameController@gameover')->name('gameover');
+
    // Route::post('/storeAjax/post', 'GameController@store');
 
 });
